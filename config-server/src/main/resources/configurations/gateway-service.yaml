@@ -1,0 +1,34 @@
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+         - id: movies-service
+           uri: lb://MOVIES-SERVICE
+           predicates:
+             - Path=/api/v1/movies/**
+         - id: users-service
+           uri: lb://USERS-SERVICE
+           predicates:
+             - Path=/api/v1/users/**
+         - id: auth-service
+           uri: lb://USERS-SERVICE
+           predicates:
+             - Path=/api/v1/auth/**
+         - id: reviews-service
+           uri: lb://REVIEWS-SERVICE
+           predicates:
+            - Path=/api/v1/reviews/**
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.security: DEBUG
+
+
+server:
+  port: 8222
