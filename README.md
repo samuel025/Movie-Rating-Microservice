@@ -7,6 +7,7 @@ A comprehensive microservice-based movie rating system built with Spring Boot, S
 The system follows a microservice architecture pattern with the following services:
 
 ### 1. Config Server
+
 - **Purpose**: Centralized configuration management
 - **Features**:
   - Externalized configuration for all microservices
@@ -16,6 +17,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Implementation**: Enabled with `@EnableConfigServer` annotation
 
 ### 2. Discovery Service
+
 - **Purpose**: Service registry and discovery
 - **Features**:
   - Netflix Eureka Server implementation
@@ -25,6 +27,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Implementation**: Enabled with `@EnableEurekaServer` annotation
 
 ### 3. Gateway Service
+
 - **Purpose**: API Gateway and authentication entry point
 - **Features**:
   - JWT token validation and filtering
@@ -34,6 +37,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Implementation**: Spring Cloud Gateway with custom JWT filter
 
 ### 4. Users Service
+
 - **Purpose**: User management and authentication
 - **Features**:
   - User registration and login
@@ -43,6 +47,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Security**: BCrypt password encryption, Spring Security integration
 
 ### 5. Movies Service
+
 - **Purpose**: Movie catalog management
 - **Features**:
   - CRUD operations for movies
@@ -51,6 +56,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Authorization**: Admin-only access for modifications, authenticated users for viewing
 
 ### 6. Reviews Service
+
 - **Purpose**: Movie review and rating management
 - **Features**:
   - Create, read movie reviews and ratings
@@ -60,6 +66,7 @@ The system follows a microservice architecture pattern with the following servic
   - Cross-service user validation
 
 ### 7. Analytics Service
+
 - **Purpose**: Review analytics and insights
 - **Features**:
   - Consumes review events from Kafka
@@ -73,6 +80,7 @@ The system follows a microservice architecture pattern with the following servic
 - **Configuration Management**: Spring Cloud Config Server
 - **Security**: Spring Security with JWT authentication
 - **Database**: JPA/Hibernate with relational database
+- **Caching**: Redis for distributed caching
 - **Message Queue**: Apache Kafka for event-driven communication
 - **API Gateway**: Spring Cloud Gateway
 - **Build Tool**: Maven
@@ -81,35 +89,48 @@ The system follows a microservice architecture pattern with the following servic
 ## Key Features
 
 ### Centralized Configuration
+
 - Externalized configuration via Config Server
 - Environment-specific configurations
 - Dynamic configuration updates without service restarts
 - Consistent configuration across services
 
 ### Service Discovery and Registration
+
 - Automatic service registration with Eureka Server
 - Dynamic scaling with service discovery
 - Load balancing across service instances
 - Self-healing through health checks and automatic de-registration
 
 ### Authentication & Authorization
+
 - JWT-based stateless authentication
 - Role-based access control (USER/ADMIN roles)
 - Secure password storage with BCrypt
 - Token validation across all services via gateway
 
 ### Data Consistency
+
 - Cross-service validation (user existence before creating reviews)
 - Unique constraints (one review per user per movie)
 - Data integrity through proper entity relationships
 
+### Distributed Caching
+
+- Redis-based caching for improved performance
+- Movie data caching with TTL (Time-To-Live) configuration
+- Cache management with automatic eviction on updates/deletes
+- JSON serialization for complex object caching
+
 ### Event-Driven Architecture
+
 - Kafka integration for asynchronous processing
 - Review creation events published to `review-created-topic`
 - Movie deletion events published to `movie-deleted-topic`
 - Analytics service consumes events for real-time processing
 
 ### Security Features
+
 - CORS configuration
 - JWT token expiration (15 minutes)
 - Stateless session management
@@ -118,17 +139,20 @@ The system follows a microservice architecture pattern with the following servic
 ## Service Communication
 
 ### Service Discovery Pattern
+
 1. Services register themselves with Eureka Server at startup
 2. Services query Eureka to locate other services
 3. Gateway routes requests to appropriate services using Eureka registry
 4. Load balancing handled automatically through Eureka
 
 ### Inter-Service Communication
+
 - **Synchronous**: REST API calls between services using `RestTemplate`
 - **Asynchronous**: Kafka messaging for event-driven processes
 - **Headers Propagation**: Authorization headers and user context forwarded across services
 
 ### Configuration Management
+
 - Services pull configurations from Config Server at startup
 - Environment-specific profiles supported (dev, test, prod)
 - Sensitive properties (like database credentials, JWT secrets) centrally managed
@@ -136,21 +160,25 @@ The system follows a microservice architecture pattern with the following servic
 ## API Endpoints
 
 ### Gateway Routes
+
 - All requests go through the gateway service
 - Authentication endpoints (`/auth/login`, `/auth/register`) bypass JWT validation
 - All other endpoints require valid JWT token
 
 ### Users Service
+
 - `POST /api/v1/users/register` - User registration
 - `POST /api/v1/users/login` - User authentication
 - `GET /api/v1/users/exists/{id}` - Check user existence (internal)
 
 ### Reviews Service
+
 - `POST /api/v1/reviews` - Create new review (authenticated users)
 - `GET /api/v1/reviews` - Get all reviews (authenticated users)
 - `GET /api/v1/reviews/{id}` - Get review by ID (authenticated users)
 
 ### Movies Service
+
 - `GET /api/v1/movies/**` - View movies (USER/ADMIN)
 - `POST /api/v1/movies/**` - Create movies (ADMIN only)
 - `PUT /api/v1/movies/**` - Update movies (ADMIN only)
@@ -159,13 +187,16 @@ The system follows a microservice architecture pattern with the following servic
 ## Security Implementation
 
 ### JWT Token Structure
+
 - **Subject**: User email
 - **Claims**: User role, User ID
 - **Expiration**: 15 minutes
 - **Algorithm**: HMAC SHA-256
 
 ### Gateway Security Filter
+
 The `JWTFilter` class handles:
+
 - Token validation for all non-auth endpoints
 - User context extraction and forwarding
 - Authorization header preservation
@@ -174,47 +205,40 @@ The `JWTFilter` class handles:
 ## Event-Driven Processing
 
 ### Kafka Integration
-- **Topics**: 
+
+- **Topics**:
   - `review-created-topic`: New review events
   - `movie-deleted-topic`: Movie deletion events
 - **Producer**: Services publish domain events
 - **Consumer**: Analytics Service processes data
 - **Message Format**: DTOs with relevant entity information
 
-## Getting Started
+## Caching Strategy
 
-1. **Prerequisites**:
-   - Java 17+
-   - Maven 3.6+
-   - Database (PostgreSQL/MySQL)
-   - Apache Kafka
-   - Docker (optional)
+### Movies Service Caching
 
-2. **Environment Setup**:
-   - Configure database connections for each service
-   - Set up Kafka broker
-   - Configure JWT secret keys
-   - Set service URLs for inter-service communication
+The Movies Service implements Redis-based caching to improve performance and reduce database load:
 
-3. **Build and Run**:
-   ```bash
-   # Build all services
-   mvn clean install
-   
-   # Run services in order:
-   # 1. Config Server
-   # 2. Discovery Service
-   # 3. Gateway Service
-   # 4. Users Service
-   # 5. Movies Service
-   # 6. Reviews Service
-   # 7. Analytics Service
-   ```
+#### Cache Configuration
 
-4. **Testing**:
-   - Register a new user via gateway
-   - Authenticate to receive JWT token
-   - Use token to access protected endpoints
+- **Cache Name**: `MOVIES_CACHE`
+- **TTL**: 5 minutes (configurable)
+- **Serialization**: Jackson JSON serialization for [`MovieDTO`](movies/src/main/java/com/moviemicroservice/movies/DTOs/MovieDTO.java) objects
+- **Null Value Handling**: Disabled to prevent caching of null values
+
+#### Cached Operations
+- **[@Cacheable](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `getSingleMovie(Long id)`: Caches individual movie retrievals by ID
+- **[@CachePut](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `addMovie(MovieDTO movieDTO)`: Updates cache when new movies are created
+- **[@CachePut](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `updateMovie(MovieDTO movieDTO, Long id)`: Refreshes cache when movies are updated
+- **[@CacheEvict](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `deleteMovie(Long movieId)`: Removes cached entries when movies are deleted
+
+
+### Cache Benefits
+
+- **Performance**: Reduced database queries for frequently accessed movie data
+- **Scalability**: Distributed caching across multiple service instances
+- **Consistency**: Automatic cache invalidation on data modifications
+- **Reliability**: TTL-based expiration prevents stale data
 
 ## System Flow
 
