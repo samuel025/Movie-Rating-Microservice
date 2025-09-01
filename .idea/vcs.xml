@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Redis-Tutorial" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/analytics" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/config-server" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/discovery" vcs="Git" />

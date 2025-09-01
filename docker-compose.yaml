@@ -47,9 +47,21 @@ services:
     networks:
       - microservices-net
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis_movie
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
 networks:
   microservices-net:
     driver: bridge
 
 volumes:
   postgres:
+  redis-data:

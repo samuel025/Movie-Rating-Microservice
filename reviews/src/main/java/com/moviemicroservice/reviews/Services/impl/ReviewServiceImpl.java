@@ -7,6 +7,8 @@ import com.moviemicroservice.reviews.Mappers.ReviewMapper;
 import com.moviemicroservice.reviews.Repositories.ReviewRepository;
 import com.moviemicroservice.reviews.Services.ReviewService;
 import com.moviemicroservice.reviews.UserService.UserClient;
+import com.moviemicroservice.reviews.security.JWTFilter;
+import com.moviemicroservice.reviews.security.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +28,18 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewProducer reviewProducer;
     private final UserClient userClient;
     private final HttpServletRequest request;
+    private final JWTService jwtService;
 
     @Override
     public ReviewDTO createReview(ReviewDTO reviewDTO) {
 
         if(reviewDTO.getRating() > 5) throw new IllegalArgumentException("Review Rating should not be greater than 5");
         String AuthHeader = request.getHeader("Authorization");
+        if (AuthHeader == null || !AuthHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Authorization is required");
+        }
+        String token = AuthHeader.substring(7);
+        reviewDTO.setUserId(jwtService.extractUserId(token));
         if(userClient.existsById(reviewDTO.getUserId(), AuthHeader) == false) {
             throw new ResourceNotFoundException("User with ID " + reviewDTO.getUserId() + " does not exist");
         }

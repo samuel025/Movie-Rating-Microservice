@@ -1,0 +1,51 @@
+
+
+
+
+@EnableCaching  on @SpringBootApplication main class
+
+
+Property File:
+Spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.cache.type=redis
+
+Create a redis config class @Configuration
+        - @Bean
+          public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory){
+            RedisCacheConfiguration redisCacheConfiguration =  RedisCacheConfiguration.defaultCacheConfig()
+                    .entryTtl(Duration.ofMinutes(10)
+                    .disableCachingNullValues()
+                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ProductDto.class)));
+            return RedisCacheManager.builder(connectionFactory)
+                    .cacheDefaults(redisCacheConfiguration).build();
+          }
+
+
+In the service
+To put value in cache
+    @CachePut(value = "PRODUCT_CACHE", key = "#result.getId()")
+    public ProductDto createProduct(ProductDto productDto){
+        Product product = modelMapper.map(productDto, Product.class);
+        Product savedProduct = productRepository.save(product);
+        return modelMapper.map(savedProduct, ProductDto.class);
+    }
+
+To get value from cache
+    @Cacheable(value = "PRODUCT_CACHE", key = "#productId")
+    public ProductDto getProduct(String productId){
+        Product product = productRepository.findById(productId).orElseThrow(()-> new ResourceNotFoundException("Product with given id not found"));
+        return product;
+    }
+
+To delete value from cache
+    @CacheEvict(value = "PRODUCT_CACHE", key = "#productId")
+    public void deleteProduct(String productId){
+        Product product = productRepository.findById(productId).orElseThrow(()-> new ResourceNotFoundException("Product with given id not found"));
+        productRepository.delete(product);
+
+Manual Caching
+@Autowired
+private CacheManager cacheManager;
+Cache cache = cacheManager.getCache("PRODUCT_CACHE");
+cache.put(productId, productDto);

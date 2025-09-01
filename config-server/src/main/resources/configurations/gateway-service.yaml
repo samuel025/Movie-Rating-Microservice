@@ -21,6 +21,10 @@ spring:
            uri: lb://REVIEWS-SERVICE
            predicates:
             - Path=/api/v1/reviews/**
+         - id: analytics-service
+           uri: lb://ANALYTICS-SERVICE
+           predicates:
+            - Path=/api/v1/analytics/**
 
 
 logging:

@@ -1,5 +1,4 @@
-package com.moviemicroservice.reviews.security;
-
+package com.moviemicroservice.analytics.Security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,7 +12,8 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
-public class JWTService {
+public class JwtService {
+
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -39,11 +39,6 @@ public class JWTService {
 
     public String extractRole(String token) {
         return extractAllClaims(token).get("role", String.class);
-    }
-
-
-    public Long extractUserId(String token) {
-        return extractAllClaims(token).get("userId", Long.class);
     }
 
     public boolean validateToken(String token) {

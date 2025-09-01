@@ -12,6 +12,9 @@ import com.moviemicroservice.movies.entities.Movie;
 import com.moviemicroservice.movies.kafka.MovieProducer;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.lang.module.ResolutionException;
@@ -30,6 +33,7 @@ public class MovieServiceImpl implements MovieService {
     private final HttpServletRequest request;
 
     @Override
+    @CachePut(value = "MOVIES_CACHE", key = "#result.getId()")
     public MovieDTO addMovie(MovieDTO movieDTO) {
         if(movieDTO.getTitle() == null || movieDTO.getGenre() == null || movieDTO.getYear() == null) {
             throw new CannotBeNull("Movie title, genre, and year cannot be null");
@@ -45,6 +49,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CachePut(value = "MOVIES_CACHE", key = "#id()")
     public MovieDTO updateMovie(MovieDTO movieDTO, Long id) {
         Movie movie = movieRepository.findById(id).orElseThrow(() -> new ResourceNotFound("Movie not found"));
         updateMovieFields(movie, movieDTO);
@@ -53,6 +58,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = "MOVIES_CACHE", key = "#movieId")
     public void deleteMovie(Long movieId) {
         movieRepository.deleteById(movieId);
         String id  = String.valueOf(movieId);
@@ -60,6 +66,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Cacheable(value = "MOVIES_CACHE", key = "#id")
     public MovieDTO getSingleMovie(Long id) {
         Movie movie = movieRepository.findById(id).orElseThrow(() -> new ResourceNotFound("Movie not found"));
         return movieMapper.toDTO(movie);
