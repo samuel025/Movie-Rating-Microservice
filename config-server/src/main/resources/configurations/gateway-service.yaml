@@ -1,4 +1,7 @@
 spring:
+  redis:
+    host: localhost
+    port: 6379
   cloud:
     gateway:
       discovery:
@@ -9,22 +12,52 @@ spring:
            uri: lb://MOVIES-SERVICE
            predicates:
              - Path=/api/v1/movies/**
+           filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
          - id: users-service
            uri: lb://USERS-SERVICE
            predicates:
              - Path=/api/v1/users/**
+           filters:
+             - name: RequestRateLimiter
+               args:
+                 redis-rate-limiter.replenishRate: 5
+                 redis-rate-limiter.burstCapacity: 10
+                 redis-rate-limiter.requestedTokens: 1
          - id: auth-service
            uri: lb://USERS-SERVICE
            predicates:
              - Path=/api/v1/auth/**
+           filters:
+             - name: RequestRateLimiter
+               args:
+                 redis-rate-limiter.replenishRate: 5
+                 redis-rate-limiter.burstCapacity: 10
+                 redis-rate-limiter.requestedTokens: 1
          - id: reviews-service
            uri: lb://REVIEWS-SERVICE
            predicates:
             - Path=/api/v1/reviews/**
+           filters:
+             - name: RequestRateLimiter
+               args:
+                 redis-rate-limiter.replenishRate: 5
+                 redis-rate-limiter.burstCapacity: 10
+                 redis-rate-limiter.requestedTokens: 1
          - id: analytics-service
            uri: lb://ANALYTICS-SERVICE
            predicates:
             - Path=/api/v1/analytics/**
+           filters:
+             - name: RequestRateLimiter
+               args:
+                 redis-rate-limiter.replenishRate: 5
+                 redis-rate-limiter.burstCapacity: 10
+                 redis-rate-limiter.requestedTokens: 1
 
 
 logging:

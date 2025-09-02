@@ -34,7 +34,8 @@ The system follows a microservice architecture pattern with the following servic
   - Request routing to appropriate microservices
   - User authentication and authorization
   - Adds user context headers (`X-User-Email`, `X-User-Role`) to downstream requests
-- **Implementation**: Spring Cloud Gateway with custom JWT filter
+  - Rate limiting with Redis for API request throttling
+- **Implementation**: Spring Cloud Gateway with custom JWT filter and Redis rate limiter
 
 ### 4. Users Service
 
@@ -227,11 +228,11 @@ The Movies Service implements Redis-based caching to improve performance and red
 - **Null Value Handling**: Disabled to prevent caching of null values
 
 #### Cached Operations
+
 - **[@Cacheable](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `getSingleMovie(Long id)`: Caches individual movie retrievals by ID
 - **[@CachePut](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `addMovie(MovieDTO movieDTO)`: Updates cache when new movies are created
 - **[@CachePut](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `updateMovie(MovieDTO movieDTO, Long id)`: Refreshes cache when movies are updated
 - **[@CacheEvict](movies/src/main/java/com/moviemicroservice/movies/Services/impl/MovieServiceImpl.java)** on `deleteMovie(Long movieId)`: Removes cached entries when movies are deleted
-
 
 ### Cache Benefits
 
@@ -239,6 +240,30 @@ The Movies Service implements Redis-based caching to improve performance and red
 - **Scalability**: Distributed caching across multiple service instances
 - **Consistency**: Automatic cache invalidation on data modifications
 - **Reliability**: TTL-based expiration prevents stale data
+
+## Rate Limiting Implementation
+
+### Redis-based Rate Limiting
+
+The Gateway Service implements request rate limiting using Redis to prevent API abuse:
+
+#### Rate Limit Configuration
+
+- **Implementation**: Spring Cloud Gateway RequestRateLimiter with Redis
+- **Storage**: Redis for distributed rate limiting across instances
+- **Limits Per Service**:
+  - Movies Service: 5 requests/second with burst of 10
+  - Users Service: 5 requests/second with burst of 10
+  - Reviews Service: 5 requests/second with burst of 10
+  - Analytics Service: 5 requests/second with burst of 10
+  - Auth Service: 5 requests/second with burst of 10
+
+#### Benefits
+
+- **Protection**: Guards against DoS attacks and API abuse
+- **Fair Usage**: Ensures fair resource distribution among users
+- **Scalability**: Distributed rate limiting across multiple gateway instances
+- **Flexibility**: Configurable limits per service route
 
 ## System Flow
 

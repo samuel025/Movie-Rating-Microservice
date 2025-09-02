@@ -43,12 +43,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -65,7 +67,14 @@ public class SecurityConfig {
     @Order(1)
     public SecurityWebFilterChain publicSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/api/v1/auth/**"))
+                .securityMatcher(ServerWebExchangeMatchers.matchers(
+                        // All auth endpoints
+                        ServerWebExchangeMatchers.pathMatchers("/api/v1/auth/**"),
+                        // GET-only movie endpoints
+                        ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET,
+                                "/api/v1/movies/**"
+                        )
+                ))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
                         .anyExchange().permitAll()

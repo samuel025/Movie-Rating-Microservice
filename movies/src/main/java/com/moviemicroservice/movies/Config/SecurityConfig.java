@@ -28,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/movies/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/movies/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/movies/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/movies/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/movies/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
